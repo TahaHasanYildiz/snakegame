@@ -53,6 +53,7 @@ h1 {
 .hud {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -181,6 +182,18 @@ button {
 .help {
   margin: 0;
   font-size: 0.9rem;
+}
+
+.leaderboard h2 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.leaderboard ol {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 4px;
 }
 
 @media (min-width: 700px) {

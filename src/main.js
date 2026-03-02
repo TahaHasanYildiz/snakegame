@@ -32,16 +32,80 @@ const directionFromInput = {
 };
 
 const board = document.querySelector('[data-board]');
+const playerValue = document.querySelector('[data-player]');
 const scoreValue = document.querySelector('[data-score]');
 const statusText = document.querySelector('[data-status]');
 const restartButton = document.querySelector('[data-restart]');
 const pauseButton = document.querySelector('[data-pause]');
+const leaderboardElement = document.querySelector('[data-leaderboard]');
 
 const rng = createRng();
+const LEADERBOARD_KEY = 'snake_leaderboard_v1';
+let leaderboard = loadLeaderboard();
+const playerName = promptForPlayerName();
 let state = createInitialState(rng);
+let scoreSubmitted = false;
 
 board.style.setProperty('--grid-size', GRID_SIZE);
 board.style.setProperty('--cell-size', `${CELL_SIZE}px`);
+renderLeaderboard();
+
+function promptForPlayerName() {
+  const name = window.prompt('Enter your username for the leaderboard:');
+  const trimmed = (name ?? '').trim().replace(/\s+/g, ' ');
+  return (trimmed || 'Guest').slice(0, 20);
+}
+
+function loadLeaderboard() {
+  try {
+    const stored = localStorage.getItem(LEADERBOARD_KEY);
+    if (!stored) {
+      return [];
+    }
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .filter((entry) => entry && typeof entry.player === 'string' && Number.isFinite(entry.score))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+  } catch {
+    return [];
+  }
+}
+
+function saveLeaderboard() {
+  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+}
+
+function renderLeaderboard() {
+  leaderboardElement.replaceChildren();
+  if (leaderboard.length === 0) {
+    const emptyItem = document.createElement('li');
+    emptyItem.textContent = 'No scores yet';
+    leaderboardElement.appendChild(emptyItem);
+    return;
+  }
+
+  leaderboard.forEach((entry) => {
+    const item = document.createElement('li');
+    item.textContent = `${entry.player} - ${entry.score}`;
+    leaderboardElement.appendChild(item);
+  });
+}
+
+function submitScoreIfNeeded() {
+  if (scoreSubmitted || state.score <= 0) {
+    return;
+  }
+  leaderboard = [...leaderboard, { player: playerName, score: state.score }]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+  saveLeaderboard();
+  renderLeaderboard();
+  scoreSubmitted = true;
+}
 
 function renderBoard() {
   board.replaceChildren();
@@ -67,6 +131,7 @@ function renderBoard() {
 }
 
 function renderHud() {
+  playerValue.textContent = playerName;
   scoreValue.textContent = String(state.score);
 
   if (state.gameOver) {
@@ -86,7 +151,9 @@ function render() {
 }
 
 function restart() {
+  submitScoreIfNeeded();
   state = createInitialState(rng);
+  scoreSubmitted = false;
   render();
 }
 
@@ -116,6 +183,9 @@ function handleKeydown(event) {
 
 function tick() {
   state = step(state, rng);
+  if (state.gameOver) {
+    submitScoreIfNeeded();
+  }
   render();
 }
 

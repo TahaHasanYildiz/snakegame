@@ -11,6 +11,7 @@
       <h1>Snake</h1>
 
       <section class="hud">
+        <p>Player: <span data-player>-</span></p>
         <p>Score: <span data-score>0</span></p>
         <p>Status: <span data-status>Running</span></p>
       </section>
@@ -32,6 +33,11 @@
       </section>
 
       <p class="help">Keyboard: arrows/WASD. Space: pause. R: restart.</p>
+
+      <section class="leaderboard">
+        <h2>All-Time Top 10</h2>
+        <ol data-leaderboard></ol>
+      </section>
     </main>
 
     <script type="module" src="./src/main.js"></script>
